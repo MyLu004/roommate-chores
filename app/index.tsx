@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Text, View, ActivityIndicator, Pressable } from "react-native";
+import { useMemo } from "react";
 import { useRouter } from "expo-router";
 import ScreenContainer from "../components/ScreenContainer";
 import PrimaryButton from "../components/PrimaryButton";
@@ -7,8 +8,15 @@ import ChoreList from "../components/ChoreList";
 import { useChores } from "../hooks/useChores";
 // import { colors } from "../constants/colors";
 export default function HomeScreen() {
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString();
   const router = useRouter();
   const { chores, loading, error, toggleChoreDone } = useChores();
+
+  // Progress bar calculation
+  const totalChores = chores.length;
+  const completedChores = chores.filter((c) => c.isDone).length;
+  const progress = totalChores === 0 ? 0 : completedChores / totalChores;
   const [showActive, setShowActive] = useState(true);
 
 
@@ -45,9 +53,21 @@ export default function HomeScreen() {
 
       <View>
         <Text className="text-black text-lg font-medium mb-2">
-          {/* display the today date */}
-          12/02/2025
-          </Text>
+          {formattedDate}
+        </Text>
+      </View>
+
+      {/* Progress Bar */}
+      <View className="mb-4">
+        <Text className="text-black text-base mb-2">
+          Progress: {completedChores} / {totalChores} completed
+        </Text>
+        <View className="h-4 w-full bg-[#e0e0e0] rounded-full overflow-hidden">
+          <View
+            style={{ width: `${progress * 100}%` }}
+            className="h-4 bg-[#ccd5ae] rounded-full"
+          />
+        </View>
       </View>
 
       {loading && (

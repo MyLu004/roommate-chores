@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { MaterialIcons } from "@expo/vector-icons";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -28,6 +30,17 @@ export default function ChoreFormScreen() {
   const [assigneeName, setAssigneeName] = useState("");
   const [assigneeColor, setAssigneeColor] = useState<string | null>(null);
   const [due, setDue] = useState("");
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const handleConfirmDate = (date: Date) => {
+    setDueDate(date);
+    setDue(date.toLocaleDateString());
+    setDatePickerVisibility(false);
+  };
+
+  const handleCancelDate = () => {
+    setDatePickerVisibility(false);
+  };
   const [saving, setSaving] = useState(false);
   const [showRoommatePicker, setShowRoommatePicker] = useState(false);
 
@@ -148,15 +161,28 @@ export default function ChoreFormScreen() {
           </Modal>
 
           <View className="mb-8">
-            <Text className="text-black text-base mb-1">
-              Due 
-            </Text>
-            <TextInput
-              className="bg-[#fefae0] rounded-xl px-4 py-6"
-              placeholder="e.g. Today 8 PM, Every Sunday"
-              placeholderTextColor="#64748b"
-              value={due}
-              onChangeText={setDue}
+            <Text className="text-black text-base mb-1">Due</Text>
+            <View className="flex-row items-center">
+              <TextInput
+                className="bg-[#fefae0] rounded-xl px-4 py-6 flex-1"
+                placeholder="Pick a date or type manually"
+                placeholderTextColor="#64748b"
+                value={due}
+                onChangeText={setDue}
+              />
+              <Pressable
+                onPress={() => setDatePickerVisibility(true)}
+                className="ml-2"
+                accessibilityLabel="Pick due date"
+              >
+                <MaterialIcons name="calendar-today" size={28} color="#573b1f" />
+              </Pressable>
+            </View>
+            <DateTimePickerModal
+              isVisible={isDatePickerVisible}
+              mode="date"
+              onConfirm={handleConfirmDate}
+              onCancel={handleCancelDate}
             />
           </View>
 
