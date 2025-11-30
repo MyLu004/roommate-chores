@@ -19,6 +19,7 @@ import PrimaryButton from "../components/PrimaryButton";
 import Avatar from "../components/Avatar";
 import { useChores } from "../hooks/useChores";
 import { useHousehold } from "../hooks/useHousehold";
+import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
 
 export default function ChoreFormScreen() {
   const router = useRouter();
@@ -32,9 +33,11 @@ export default function ChoreFormScreen() {
   const [due, setDue] = useState("");
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const handleConfirmDate = (date: Date) => {
-    setDueDate(date);
-    setDue(date.toLocaleDateString());
+  const handleConfirmDate = (date: Date | undefined) => {
+    if (date !== undefined) {
+      setDueDate(date);
+      setDue(date.toLocaleDateString());
+    }
     setDatePickerVisibility(false);
   };
 
@@ -178,12 +181,20 @@ export default function ChoreFormScreen() {
                 <MaterialIcons name="calendar-today" size={28} color="#573b1f" />
               </Pressable>
             </View>
-            <DateTimePickerModal
+            {Platform.OS === 'ios' || Platform.OS === 'android' 
+            ? <DateTimePickerModal
               isVisible={isDatePickerVisible}
               mode="date"
               onConfirm={handleConfirmDate}
               onCancel={handleCancelDate}
-            />
+            /> 
+            : <DatePickerModal 
+              visible={isDatePickerVisible}
+              locale="en"
+              mode="single"
+              onConfirm={params => handleConfirmDate(params.date)}
+              onDismiss={handleCancelDate}
+            />}
           </View>
 
           {saving && (
