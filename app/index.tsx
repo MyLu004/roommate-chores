@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Text, View, ActivityIndicator, Pressable } from "react-native";
-import { useMemo } from "react";
+// import { useMemo } from "react";
 import { useRouter } from "expo-router";
 import ScreenContainer from "../components/ScreenContainer";
 import PrimaryButton from "../components/PrimaryButton";

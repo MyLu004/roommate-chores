@@ -19,13 +19,13 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.mylu004.roomatechores"
     },
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png",
       "bundler": "metro"
-
     },
     "plugins": [
       "expo-router",
@@ -45,6 +45,11 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b14f523e-cbc2-4d8d-9ca6-8218f0d6375b"
+      }
     }
   }
 }
