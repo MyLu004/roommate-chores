@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Text, View, ActivityIndicator, Pressable } from "react-native";
+import { Text, View, ActivityIndicator, Pressable, Alert } from "react-native";
+import { setEditingChoreId } from "../lib/editingChore";
 // import { useMemo } from "react";
 import { useRouter } from "expo-router";
 import ScreenContainer from "../components/ScreenContainer";
@@ -11,7 +12,7 @@ export default function HomeScreen() {
   const today = new Date();
   const formattedDate = today.toLocaleDateString();
   const router = useRouter();
-  const { chores, loading, error, toggleChoreDone } = useChores();
+  const { chores, loading, error, toggleChoreDone, deleteChore } = useChores();
 
   // Progress bar calculation
   const totalChores = chores.length;
@@ -87,9 +88,41 @@ export default function HomeScreen() {
 
       {!loading && (
         <ChoreList
-        
           chores={showActive ? chores.filter((c) => !c.isDone) : chores.filter((c) => c.isDone)}
           onToggleDone={toggleChoreDone}
+          onEdit={(id) => {
+            setEditingChoreId(id);
+            router.push(`/chore-form`);
+          }}
+          onDelete={(id) => {
+            console.log("Delete pressed for id:", id);
+            Alert.alert(
+              "Delete chore",
+              "Are you sure you want to delete this chore?",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Delete",
+                  style: "destructive",
+                  onPress: async () => {
+                    try {
+                      console.log("Calling deleteChore for id:", id);
+                      const ok = await deleteChore(id);
+                      console.log("deleteChore result:", ok);
+                      if (ok) {
+                        Alert.alert("Deleted", "Chore deleted.");
+                      } else {
+                        Alert.alert("Error", "Could not delete chore (server denied). Check RLS/policies.");
+                      }
+                    } catch (e) {
+                      console.error(e);
+                      Alert.alert("Error", "Could not delete chore.");
+                    }
+                  },
+                },
+              ]
+            );
+          }}
           emptyMessage={showActive ? 'No chores yet. Tap "Add chore" to create one.' : "No completed chores yet."}
         />
       )}
@@ -109,7 +142,7 @@ export default function HomeScreen() {
             className="flex-1"
           />
           <PrimaryButton
-            label="Add roomates"
+            label="Household Settings"
             variant="primary"
             onPress={() => router.push("/setting")}
             className="flex-1"
@@ -125,7 +158,7 @@ export default function HomeScreen() {
             className="flex-1"
           />
           <PrimaryButton
-            label="View Calendar"
+            label="View Chores List"
             variant="secondary"
             onPress={() => router.push("/")}
             className="flex-1"

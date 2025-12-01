@@ -8,12 +8,16 @@ type ChoreListProps = {
   chores: Chore[];
   onToggleDone?: (id: string) => void;
   emptyMessage?: string;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 };
 
 export default function ChoreList({
   chores,
   onToggleDone,
   emptyMessage = 'No chores yet. Tap "Add chore" to create one.',
+  onEdit,
+  onDelete,
 }: ChoreListProps) {
   const renderItem: ListRenderItem<Chore> = ({ item }) => (
     <ChoreCard
@@ -23,6 +27,8 @@ export default function ChoreList({
       dueLabel={item.dueLabel}
       isDone={item.isDone}
       onToggleDone={() => onToggleDone?.(item.id)}
+      onEdit={() => onEdit?.(item.id)}
+      onDelete={() => onDelete?.(item.id)}
     />
   );
 

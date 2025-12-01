@@ -2,6 +2,7 @@
 // hooks/useChores.ts
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { playCompleteSound, playAllDoneSound } from "../lib/sounds";
 import type { Chore as UiChore } from "../components/ChoreList";
 
 export type Chore = UiChore;
@@ -21,6 +22,8 @@ type UseChoresResult = {
   refresh: () => Promise<void>;
   addChore: (input: NewChoreInput) => Promise<void>;
   toggleChoreDone: (id: string) => Promise<void>;
+  updateChore: (id: string, input: Partial<NewChoreInput>) => Promise<void>;
+  deleteChore: (id: string) => Promise<boolean>;
 };
 
 /**
@@ -170,10 +173,89 @@ export function useChores(): UseChoresResult {
           )
         );
       }
+      else {
+        // Play a sound when a chore is completed. If this toggle results
+        // in *all* chores being completed, play the 'all done' sound.
+        try {
+          if (nextIsDone) {
+            const willAllBeDone = chores.every((c) => (c.id === id ? nextIsDone : c.isDone));
+            // fire-and-forget
+            if (willAllBeDone) playAllDoneSound();
+            else playCompleteSound();
+          }
+        } catch (e) {
+          console.warn('[useChores] sound play error', e);
+        }
+      }
       // Keep the optimistic update in place; don't refresh the entire list
       // to avoid reverting the toggle due to timing issues
     },
+    [chores, fetchChores]
+  );
+
+  const updateChore = useCallback(
+    async (id: string, input: Partial<NewChoreInput>) => {
+      setError(null);
+
+      const prev = chores.find((c) => c.id === id);
+      if (!prev) return;
+
+      // Optimistic update
+      setChores((prevList) =>
+        prevList.map((c) => (c.id === id ? { ...c, ...input } : c))
+      );
+
+      const updatePayload: any = {};
+      if (input.title !== undefined) updatePayload.title = input.title;
+      if (input.assigneeName !== undefined)
+        updatePayload.assignee_name = input.assigneeName;
+      if (input.assigneeId !== undefined)
+        updatePayload.assignee_id = input.assigneeId;
+      if (input.dueLabel !== undefined) updatePayload.due_label = input.dueLabel;
+      if (input.assigneeColor !== undefined)
+        updatePayload.assignee_color = input.assigneeColor;
+
+      const { error } = await supabase.from("chores").update(updatePayload).eq("id", id);
+
+      if (error) {
+        console.error("[useChores] updateChore error:", error);
+        setError(error.message);
+        // rollback
+        setChores((prevList) => prevList.map((c) => (c.id === id ? prev : c)));
+      }
+    },
     [chores]
+  );
+
+  const deleteChore = useCallback(
+    async (id: string) => {
+      setError(null);
+      if (!id) {
+        setError("Invalid id");
+        return false;
+      }
+
+      const prev = chores;
+
+      // Optimistic remove
+      setChores((prevList) => prevList.filter((c) => c.id !== id));
+
+      // Include .select() so Supabase returns the deleted row or an explicit error
+      const { data, error } = await supabase.from("chores").delete().eq("id", id).select();
+
+      if (error) {
+        console.error("[useChores] deleteChore error:", error);
+        setError(error.message);
+        // rollback
+        setChores(prev);
+        return false;
+      }
+
+      // Refresh the list to ensure consistent state (in case realtime misses)
+      await fetchChores();
+      return true;
+    },
+    [chores, fetchChores]
   );
 
   return {
@@ -183,5 +265,7 @@ export function useChores(): UseChoresResult {
     refresh: fetchChores,
     addChore,
     toggleChoreDone,
+    updateChore,
+    deleteChore,
   };
 }

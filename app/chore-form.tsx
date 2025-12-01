@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { MaterialIcons } from "@expo/vector-icons";
 import {
@@ -14,6 +14,7 @@ import {
   Modal,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { getEditingChoreId, clearEditingChoreId } from "../lib/editingChore";
 import ScreenContainer from "../components/ScreenContainer";
 import PrimaryButton from "../components/PrimaryButton";
 import Avatar from "../components/Avatar";
@@ -28,7 +29,8 @@ import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
 
 export default function ChoreFormScreen() {
   const router = useRouter();
-  const { addChore } = useChores();
+  const { addChore, chores, updateChore } = useChores();
+  const [editingId, setEditingId] = React.useState<string | null>(null);
   const { roommates, loading: roommatesLoading } = useHousehold();
 
   const [title, setTitle] = useState("");
@@ -67,14 +69,27 @@ export default function ChoreFormScreen() {
 
     setSaving(true);
     try {
-      await addChore({
-        title: title.trim(),
-        assigneeName: assigneeName || "Unassigned",
-        assigneeId: assigneeId || undefined,
-        assigneeColor: assigneeColor || undefined,
-        dueLabel: due.trim() || "Anytime",
-      });
-      router.back();
+      if (editingId) {
+        // Edit existing chore
+        await updateChore(editingId as string, {
+          title: title.trim(),
+          assigneeName: assigneeName || "Unassigned",
+          assigneeId: assigneeId || undefined,
+          assigneeColor: assigneeColor || undefined,
+          dueLabel: due.trim() || "Anytime",
+        });
+        clearEditingChoreId();
+        router.back();
+      } else {
+        await addChore({
+          title: title.trim(),
+          assigneeName: assigneeName || "Unassigned",
+          assigneeId: assigneeId || undefined,
+          assigneeColor: assigneeColor || undefined,
+          dueLabel: due.trim() || "Anytime",
+        });
+        router.back();
+      }
     } catch (e) {
       console.error(e);
       alert("Something went wrong while saving the chore.");
@@ -82,6 +97,20 @@ export default function ChoreFormScreen() {
       setSaving(false);
     }
   };
+
+  // Read editing id from fallback store on mount and populate fields
+  useEffect(() => {
+    const id = getEditingChoreId();
+    setEditingId(id);
+    if (!id) return;
+    const existing = chores.find((c) => c.id === id);
+    if (existing) {
+      setTitle(existing.title ?? "");
+      setAssigneeName(existing.assigneeName ?? "");
+      setAssigneeColor(existing.assigneeColor ?? null);
+      setDue(existing.dueLabel ?? "");
+    }
+  }, [chores]);
 
 
   return (
@@ -97,7 +126,7 @@ export default function ChoreFormScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Text className="text-black text-2xl font-bold mb-6">
-            Add new chore
+            {editingId ? "Edit chore" : "Add new chore"}
           </Text>
 
           <View className="mb-4">
@@ -223,7 +252,10 @@ export default function ChoreFormScreen() {
             <PrimaryButton
               label="Cancel"
               variant="secondary"
-              onPress={() => router.back()}
+              onPress={() => {
+                clearEditingChoreId();
+                router.back();
+              }}
               className="flex-1"
               disabled={saving}
             />

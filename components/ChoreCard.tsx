@@ -9,6 +9,8 @@ export type ChoreCardProps = {
   isDone: boolean;
   assigneeColor?: string | null; // Color hex code from roommate
   onToggleDone?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 };
 
 export default function ChoreCard({
@@ -18,6 +20,8 @@ export default function ChoreCard({
   isDone,
   assigneeColor,
   onToggleDone,
+  onEdit,
+  onDelete,
 }: ChoreCardProps) {
   return (
     <View className="flex-row items-center justify-between rounded-2xl bg-[#a98467] px-4 py-3 mb-3">
@@ -38,18 +42,36 @@ export default function ChoreCard({
         </View>
       </View>
 
-      <Pressable
-        className={`w-8 h-8 rounded-full border-2 items-center justify-center ${
-          isDone
-            ? "bg-[#ccd5ae] border-[#ccd5ae]"
-            : "border-[#fefae0]"
-        }`}
-        onPress={onToggleDone}
-      >
-        {isDone && (
-          <Text className="text-[#271e16] text-xs font-bold">✓</Text>
-        )}
-      </Pressable>
+      <View className="flex-row items-center">
+        <Pressable
+          className="mr-3 px-2 py-1 rounded-lg bg-white/20"
+          onPress={onEdit}
+          accessibilityLabel="Edit chore"
+        >
+          <Text className="text-white text-base">✎</Text>
+        </Pressable>
+
+        {/* <Pressable
+          className="mr-3 px-2 py-1 rounded-lg bg-white/20"
+          onPress={onDelete}
+          accessibilityLabel="Delete chore"
+        >
+          <Text className="text-white text-sm">🗑️</Text>
+        </Pressable> */}
+
+        <Pressable
+          className={`w-8 h-8 rounded-full border-2 items-center justify-center ${
+            isDone
+              ? "bg-[#ccd5ae] border-[#ccd5ae]"
+              : "border-[#fefae0]"
+          }`}
+          onPress={onToggleDone}
+        >
+          {isDone && (
+            <Text className="text-[#271e16] text-xs font-bold">✓</Text>
+          )}
+        </Pressable>
+      </View>
     </View>
   );
 }
