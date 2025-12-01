@@ -1,6 +1,8 @@
 // app/_layout.tsx
 import "./global.css";
 import { Stack, useRouter } from "expo-router";
+import { Provider as PaperProvider, MD3LightTheme } from "react-native-paper";
+
 import { Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 // import { useRouter } from "expo-router";
@@ -8,6 +10,8 @@ import { Ionicons } from "@expo/vector-icons";
 // 🔹 Custom circle back button component
 function CircleBackButton() {
   const router = useRouter();
+
+  
 
   return (
     <Pressable
@@ -28,8 +32,22 @@ function CircleBackButton() {
   );
 }
 
+// styling the web calender.
+    const theme = {
+    ...MD3LightTheme,
+    colors: {
+      ...MD3LightTheme.colors,
+      primary: "#573b1f",        // header / selected date color
+      primaryContainer: "#fefae0",
+      surface: "#fefae0",        // dialog background
+      background: "#faedcd",     // app background
+      onSurface: "#000000",      // text color inside calendar
+    },
+  };
+
 export default function RootLayout() {
   return (
+    <PaperProvider theme={theme}>
     <Stack
       screenOptions={{
         contentStyle: {
@@ -83,5 +101,6 @@ export default function RootLayout() {
         }}
       />
     </Stack>
+    </PaperProvider>
   );
 }

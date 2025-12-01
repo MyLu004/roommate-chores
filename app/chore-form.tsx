@@ -19,6 +19,11 @@ import PrimaryButton from "../components/PrimaryButton";
 import Avatar from "../components/Avatar";
 import { useChores } from "../hooks/useChores";
 import { useHousehold } from "../hooks/useHousehold";
+
+// for styling web calendar
+import { Provider as PaperProvider, MD3LightTheme } from "react-native-paper";
+import { Stack } from "expo-router";
+
 import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
 
 export default function ChoreFormScreen() {
@@ -78,7 +83,9 @@ export default function ChoreFormScreen() {
     }
   };
 
+
   return (
+    
     <KeyboardAvoidingView
       className="flex-1 bg-slate-900"
       behavior={Platform.OS === "ios" ? "padding" : undefined}
